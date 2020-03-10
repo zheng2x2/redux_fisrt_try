@@ -1,1 +1,1 @@
-# redux_fisrt_try
+# Redux_fisrt => first 

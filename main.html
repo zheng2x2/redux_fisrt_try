@@ -15,6 +15,8 @@
         function reducer(state, action){
             if(state === undefined) {
                 return {
+                    max_id:2,
+                    mode:'CREATE',
                     selected_id:1,
                     contents:[
                         {id:1,title:'HTML', desc:'HTML is...'},
@@ -25,7 +27,27 @@
             var newState;
             if(action.type==='SELECT'){
                 newState = Object.assign({}, state, {selected_id:action.id});
+            }else if(action.type==='CREATE'){
+                var newMaxId = state.max_id+1;
+                var newContents = state.contents.concat(); //copy array
+                newContents.push({id:newMaxId, title:action.title, desc:action.desc});
+                newState = Object.assign({}, state, {
+                    max_id : newMaxId,
+                    contents : newContents,
+                    mode : 'READ'
+                })
+            }else if(action.type==='DELETE'){
+                var newContents =[];
+                var i = 0;
+                while(i < state.contents.length){
+                    if(this.state.selected_id===state.contents.id){
+
+                        break;
+                    }
+                    i++;
+                }
             }
+            console.log(action, state, newState)
             return newState;
         }
         var store = Redux.createStore(reducer);   
@@ -66,13 +88,18 @@
             </nav>
             `;
         }
+        store.subscribe(TOC);
         TOC();
 
         function control(){
             document.querySelector('#control').innerHTML=`
             <ul>
-                <li><input type="button" value="create"/></li>
-                <li><input type="button" value="delete"/></li>
+                <li><input type="button" value="create" onclick="
+                    store.dispatch({type:'SELECT'})
+                "/></li>
+                <li><input type="button" value="delete" onclick="
+                    store.dispatch({type:'DELETE'})
+                "/></li>
             </ul>
             `;
         }
@@ -80,22 +107,52 @@
 
         function article(){
             var state = store.getState();
-            var i = 0;
-            var aTitle, aDesc;
-            while(i<state.contents.length){
-                if(state.contents[i].id === state.selected_id){
-                    aTitle = state.contents[i].title;
-                    aDesc = state.contents[i].desc;
-                    break;
+            if(state.mode === 'CREATE'){
+                document.querySelector('#content').innerHTML=`
+                <article>
+                    <form onsubmit="
+                        event.preventDefault();
+                        var _title = this.title.value; console.log(_title);
+                        var _desc = this.desc.value;
+                        store.dispatch({
+                            type:'CREATE',
+                            title : _title,
+                            desc : _desc
+                        })
+                    ">
+                        <p>
+                            <input type="text" name="title" placeholder="title">
+                        </p>
+                        <p>
+                            <textarea name="desc" placeholder="description"></textarea>
+                        </p>
+                        <p>
+                            <input type="submit">
+                        </p>
+                    </form>
+                </article>
+                `;
+            }else if(state.mode === 'READ') {
+                var i = 0;
+                var aTitle, aDesc;
+                while(i<state.contents.length){
+                    if(state.contents[i].id === state.selected_id){
+                        aTitle = state.contents[i].title;
+                        aDesc = state.contents[i].desc;
+                        break;
+                    }
+                    i++;
                 }
-                i++;
+                document.querySelector('#content').innerHTML=`
+                <article>
+                    <h2>${aTitle}</h2>
+                    ${aDesc}
+                </article>
+                `;
             }
-            document.querySelector('#content').innerHTML=`
-            <article>
-                <h2>${aTitle}</h2>
-                ${aDesc}
-            </article>
-            `;
+
+
+            
         }
         store.subscribe(article);
         article();

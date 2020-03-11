@@ -26,7 +26,9 @@
             }
             var newState;
             if(action.type==='SELECT'){
-                newState = Object.assign({}, state, {selected_id:action.id});
+                newState = Object.assign({}, state, {
+                    selected_id:action.id, mode:'READ'
+                });
             }else if(action.type==='CREATE'){
                 var newMaxId = state.max_id+1;
                 var newContents = state.contents.concat(); //copy array
@@ -40,12 +42,19 @@
                 var newContents =[];
                 var i = 0;
                 while(i < state.contents.length){
-                    if(this.state.selected_id===state.contents.id){
-
-                        break;
+                    if(state.selected_id!==state.contents[i].id){
+                        newContents.push(
+                            state.contents[i]
+                        )
                     }
                     i++;
                 }
+                newState = Object.assign({}, state, {
+                    contents:newContents,
+                    mode : 'welcome'
+                });
+            }else if(action.type==='CHANGE_MODE'){
+                newState = Object.assign({}, state, {mode:action.mode})
             }
             console.log(action, state, newState)
             return newState;
@@ -95,7 +104,7 @@
             document.querySelector('#control').innerHTML=`
             <ul>
                 <li><input type="button" value="create" onclick="
-                    store.dispatch({type:'SELECT'})
+                    store.dispatch({type:'CHANGE_MODE',mode:'CREATE'})
                 "/></li>
                 <li><input type="button" value="delete" onclick="
                     store.dispatch({type:'DELETE'})
@@ -149,6 +158,12 @@
                     ${aDesc}
                 </article>
                 `;
+            }else if(state.mode === 'welcome') {
+                document.querySelector('#content').innerHTML=`
+                <article>
+                    <h2>Welcome</h2>
+                    Hello Redux
+                </article>`
             }
 
 
